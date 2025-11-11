@@ -1,8 +1,9 @@
-#include <QString>
-#include <QMap>
-#include <QFile>
-#include <QTextStream>
 #include <QCoreApplication>
+#include <QFile>
+#include <QDataStream>
+#include <QMap>
+#include <QString>
+#include <QTextStream>
 
 class AddressBook {
 private:
@@ -18,27 +19,32 @@ public:
     }
 
     void load_file() {
-        QFile file("addressbook.txt");
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QTextStream inFile(&file);
-            while (!inFile.atEnd()) {
-                QString line = inFile.readLine().trimmed();
-                if (line.isEmpty()) continue;
+        QFile file("addressbook.dat");
+        if (file.open(QIODevice::ReadOnly)) {
+            QDataStream inFile(&file);
+            inFile.setVersion(QDataStream::Qt_6_0);
 
-                QStringList parts = line.split(",");
-                if (parts.size() == 2)
-                    contacts.insert(parts[0].trimmed(), parts[1].trimmed());
+            int size;
+            inFile >> size;
+            for (int i = 0; i < size; ++i) {
+                QString name, number;
+                inFile >> name >> number;
+                contacts.insert(name, number);
             }
             file.close();
         }
     }
 
     void save_file() {
-        QFile file("addressbook.txt");
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream outFile(&file);
+        QFile file("addressbook.dat");
+        if (file.open(QIODevice::WriteOnly)) {
+            QDataStream outFile(&file);
+            outFile.setVersion(QDataStream::Qt_6_0);
+
+            outFile << contacts.size();
             for (auto it = contacts.begin(); it != contacts.end(); ++it)
-                outFile << it.key() << "," << it.value() << "\n";
+                outFile << it.key() << it.value();
+
             file.close();
         }
     }
@@ -71,12 +77,12 @@ public:
         if (contacts.remove(name) > 0)
             out << " Contact removed successfully!\n";
         else
-            out << "Contact not found.\n";
+            out << " Contact not found.\n";
     }
 
     void list_contacts() {
         if (contacts.isEmpty()) {
-            out << "\nNo contacts available.\n";
+            out << "\n No contacts available.\n";
             return;
         }
 
@@ -105,10 +111,11 @@ public:
             else if (choice == "2") remove_contact();
             else if (choice == "3") list_contacts();
             else if (choice.toLower() == "exit") {
-                out << "\nSaving and exiting... Goodbye!\n";
+                out << "\n Saving and exiting... Goodbye!\n";
                 break;
+            } else {
+                out << " Invalid choice. Try again.\n";
             }
-            else out << " Invalid choice. Try again.\n";
         }
     }
 };
