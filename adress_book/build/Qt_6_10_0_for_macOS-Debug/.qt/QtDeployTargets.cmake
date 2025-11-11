@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_adress_book_FILE /Users/minrutha/Documents/Gemini/qt/qt_exercises/adress_book/build/Qt_6_10_0_for_macOS-Debug/adress_book)
+set(__QT_DEPLOY_TARGET_adress_book_TYPE EXECUTABLE)
